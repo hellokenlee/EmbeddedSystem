@@ -12,13 +12,13 @@ Lab Environment:
 ==============
 
 FileSystem:
-  -projectName/
-  |
-  ------------project.v
-  |
-  ------------projectTest.v
-  |
-  ------------projectConstrains.ufc
+  -projectName/<br>
+  |<br>
+  ------------project.v<br>
+  |<br>
+  ------------projectTest.v<br>
+  |<br>
+  ------------projectConstrains.ufc<br>
 
 ==============
 
