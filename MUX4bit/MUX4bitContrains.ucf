@@ -1,0 +1,7 @@
+NET "a" LOC="T5";
+NET "b" LOC="V8";
+NET "c" LOC="U8";
+NET "d" LOC="N8";
+NET "y" LOC="T11";
+NET "s[1]" LOC="T9";
+NET "s[0]" LOC="T10";

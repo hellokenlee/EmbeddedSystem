@@ -1,0 +1,2 @@
+ls *.bit
+djtgcfg prog -d Nexys3 -i 0 -f *.bit 

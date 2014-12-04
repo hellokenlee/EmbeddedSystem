@@ -1,0 +1,10 @@
+NET "bin[3]" LOC="T5";
+NET "bin[2]" LOC="V8";
+NET "bin[1]" LOC="U8";
+NET "bin[0]" LOC="N8";
+
+NET "BCD[4]" LOC="T11";
+NET "BCD[3]" LOC="R11";
+NET "BCD[2]" LOC="N11";
+NET "BCD[1]" LOC="M11";
+NET "BCD[0]" LOC="V15";

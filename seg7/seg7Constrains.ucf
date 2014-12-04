@@ -1,0 +1,17 @@
+NET "ga[3]" LOC="N16";
+NET "ga[2]" LOC="N15";
+NET "ga[1]" LOC="P18";
+NET "ga[0]" LOC="P17";
+
+NET "a[3]" LOC="T5";
+NET "a[2]" LOC="V8";
+NET "a[1]" LOC="U8";
+NET "a[0]" LOC="N8";
+
+NET "seg[6]" LOC="T17";
+NET "seg[5]" LOC="T18";
+NET "seg[4]" LOC="U17";
+NET "seg[3]" LOC="U18";
+NET "seg[2]" LOC="M14";
+NET "seg[1]" LOC="N14";
+NET "seg[0]" LOC="L14";

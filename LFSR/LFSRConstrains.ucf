@@ -1,0 +1,10 @@
+NET "clk1" LOC="v10";
+NET "clr" LOC="T5";
+NET "qs[7]" LOC="T11";
+NET "qs[6]" LOC="R11";
+NET "qs[5]" LOC="N11";
+NET "qs[4]" LOC="M11";
+NET "qs[3]" LOC="V15";
+NET "qs[2]" LOC="U15";
+NET "qs[1]" LOC="V16";
+NET "qs[0]" LOC="U16";

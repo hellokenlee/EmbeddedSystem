@@ -1,0 +1,12 @@
+NET "ledOut[7]" LOC ="T11";
+NET "ledOut[6]" LOC ="R11";
+NET "ledOut[5]" LOC ="N11";
+NET "ledOut[4]" LOC ="M11";
+NET "ledOut[3]" LOC ="V15";
+NET "ledOut[2]" LOC ="U15";
+NET "ledOut[1]" LOC ="V16";
+NET "ledOut[0]" LOC ="U16";
+
+NET "codeIn[2]" LOC ="T5";
+NET "codeIn[1]" LOC ="V8";
+NET "codeIn[0]" LOC ="U8";

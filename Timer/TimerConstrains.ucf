@@ -1,0 +1,22 @@
+NET "clk" LOC="V10";
+
+NET "reset" LOC="T10";
+
+NET "start" LOC="C4";
+NET "stop" LOC="B8";
+NET "inc" LOC="D9";
+
+NET "seg[6]" LOC="T17";
+NET "seg[5]" LOC="T18";
+NET "seg[4]" LOC="U17";
+NET "seg[3]" LOC="U18";
+NET "seg[2]" LOC="M14";
+NET "seg[1]" LOC="N14";
+NET "seg[0]" LOC="L14";
+
+NET "ga[3]" LOC="P17";
+NET "ga[2]" LOC="P18";
+NET "ga[1]" LOC="N15";
+NET "ga[0]" LOC="N16";
+
+NET "dp" LOC="M13";

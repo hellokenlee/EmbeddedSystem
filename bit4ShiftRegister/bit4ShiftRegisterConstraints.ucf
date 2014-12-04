@@ -1,0 +1,8 @@
+NET "data_in1" LOC="T5";
+NET "clr1" LOC="V8";
+NET "clk1" LOC="v10";
+NET "qs[3]" LOC="T11";
+NET "qs[2]" LOC="R11";
+NET "qs[1]" LOC="N11";
+NET "qs[0]" LOC="M11";
+NET "clk2" LOC="U16";

@@ -1,0 +1,14 @@
+NET "LA[2]" LOC="T11";
+NET "LA[1]" LOC="R11";
+NET "LA[0]" LOC="N11";
+
+NET "LB[2]" LOC="V15";
+NET "LB[1]" LOC="U15";
+NET "LB[0]" LOC="V16";
+
+NET "clk" LOC="V10";
+
+NET "reset" LOC="T10";
+
+NET "Ta" LOC="T5";
+NET "Tb" LOC="V8";
