@@ -4,15 +4,15 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   14:39:27 11/30/2014
-// Design Name:   VGA
-// Module Name:   /home/kenlee/ESADHW/VGAStatic/ALLTest.v
-// Project Name:  VGAStatic
+// Create Date:   13:05:15 12/22/2014
+// Design Name:   ALU
+// Module Name:   /home/kenlee/ESADHW/CPU/ALUTest.v
+// Project Name:  CPU
 // Target Device:  
 // Tool versions:  
 // Description: 
 //
-// Verilog Test Fixture created by ISE for module: VGA
+// Verilog Test Fixture created by ISE for module: ALU
 //
 // Dependencies:
 // 
@@ -22,46 +22,41 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-module ALLTest;
+module ALUTest;
 
 	// Inputs
-	reg clk;
-	reg [7:0] data;
+	reg [15:0] reg_A;
+	reg [15:0] reg_B;
+	reg [15:0] ex_ir;
+	reg cf_in;
 
 	// Outputs
-	wire vs;
-	wire hs;
-	wire [2:0] r;
-	wire [2:0] g;
-	wire [1:0] b;
+	wire [15:0] ALUo;
+	wire cf_out;
 
 	// Instantiate the Unit Under Test (UUT)
-	VGA uut (
-		.clk(clk), 
-		.data(data), 
-		.vs(vs), 
-		.hs(hs), 
-		.r(r), 
-		.g(g), 
-		.b(b)
+	ALU uut (
+		.reg_A(reg_A), 
+		.reg_B(reg_B), 
+		.ex_ir(ex_ir), 
+		.cf_in(cf_in), 
+		.ALUo(ALUo), 
+		.cf_out(cf_out)
 	);
 
 	initial begin
 		// Initialize Inputs
-		clk = 0;
-		data = 8'b01010101;
+		reg_A = 0;
+		reg_B = 0;
+		ex_ir = 0;
+		cf_in = 0;
 
 		// Wait 100 ns for global reset to finish
 		#100;
-        
+		reg_A<=1;
+		reg_B<=1;
+      ex_ir<=16'b10000_000_0000_0000;
 		// Add stimulus here
-		while(1)
-		begin
-			#5;
-			clk=1;
-			#5
-			clk=0;
-		end
 	end
       
 endmodule

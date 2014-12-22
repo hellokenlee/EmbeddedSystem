@@ -4,15 +4,15 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   11:39:26 11/30/2014
-// Design Name:   divider
-// Module Name:   /home/kenlee/ESADHW/VGAStatic/dividerTest.v
-// Project Name:  VGAStatic
+// Create Date:   21:41:19 12/04/2014
+// Design Name:   VGAStatic
+// Module Name:   /home/kenlee/ESADHW/VGAMove/VGATest.v
+// Project Name:  VGAMove
 // Target Device:  
 // Tool versions:  
 // Description: 
 //
-// Verilog Test Fixture created by ISE for module: divider
+// Verilog Test Fixture created by ISE for module: VGAStatic
 //
 // Dependencies:
 // 
@@ -22,35 +22,42 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-module dividerTest;
+module VGATest;
 
 	// Inputs
-	reg clk;
+	reg dclk;
 
 	// Outputs
-	wire dclk;
+	wire vs;
+	wire hs;
+	wire [2:0] r;
+	wire [2:0] g;
+	wire [1:0] b;
+	wire dirX;
+	wire dirY;
 
 	// Instantiate the Unit Under Test (UUT)
-	divider uut (
-		.clk(clk), 
-		.dclk(dclk)
+	VGAStatic uut (
+		.dclk(dclk), 
+		.vs(vs), 
+		.hs(hs), 
+		.r(r), 
+		.g(g), 
+		.b(b), 
+		.dirX(dirX), 
+		.dirY(dirY)
 	);
 
 	initial begin
 		// Initialize Inputs
-		clk = 0;
+		dclk = 0;
 
 		// Wait 100 ns for global reset to finish
 		#100;
-      while(1)
-		begin
-			#5;
-			clk=1;
-			#5;
-			clk=0;
-		end
+        
 		// Add stimulus here
-
+		while(1)
+		
 	end
       
 endmodule

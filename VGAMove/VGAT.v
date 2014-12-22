@@ -4,15 +4,15 @@
 // Company: 
 // Engineer:
 //
-// Create Date:   12:53:23 11/30/2014
-// Design Name:   VGAStatic
-// Module Name:   /home/kenlee/ESADHW/VGAStatic/VGATest.v
-// Project Name:  VGAStatic
+// Create Date:   21:44:39 12/04/2014
+// Design Name:   VGA
+// Module Name:   /home/kenlee/ESADHW/VGAMove/VGAT.v
+// Project Name:  VGAMove
 // Target Device:  
 // Tool versions:  
 // Description: 
 //
-// Verilog Test Fixture created by ISE for module: VGAStatic
+// Verilog Test Fixture created by ISE for module: VGA
 //
 // Dependencies:
 // 
@@ -22,12 +22,11 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-module VGATest;
+module VGAT;
 
 	// Inputs
-	reg dclk;
-	reg [7:0] data;
-
+	reg clk;
+	reg[7:0] data;
 	// Outputs
 	wire vs;
 	wire hs;
@@ -36,9 +35,9 @@ module VGATest;
 	wire [1:0] b;
 
 	// Instantiate the Unit Under Test (UUT)
-	VGAStatic uut (
-		.dclk(dclk), 
-		.data(data), 
+	VGA uut (
+		.clk(clk), 
+		.data(data),
 		.vs(vs), 
 		.hs(hs), 
 		.r(r), 
@@ -48,19 +47,17 @@ module VGATest;
 
 	initial begin
 		// Initialize Inputs
-		dclk = 0;
-		data = 8'b10_101_010;
-
+		data=8'b1111_1111;
 		// Wait 100 ns for global reset to finish
 		#100;
         
 		// Add stimulus here
 		while(1)
 		begin
-			#1;
-			dclk=1;
-			#1;
-			dclk=0;
+			#5;
+			clk=1;
+			#5;
+			clk=0;
 		end
 	end
       
