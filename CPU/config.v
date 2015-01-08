@@ -9,6 +9,7 @@
 `define zero16 16'b0000_0000_0000_0000
 `define zero12 12'b0000_0000_0000
 `define zero8 8'b0000_0000
+`define zero5 5'b00000
 //状态代码
 `define idle 1'b0
 `define exec 1'b1
@@ -20,7 +21,6 @@
 `define AND  5'b00010
 `define OR   5'b00011
 `define XOR  5'b00100
-
 
 `define SLA  5'b01000
 `define SRA  5'b01001
@@ -57,5 +57,4 @@
 `define gr5 3'b101
 `define gr6 3'b110
 `define gr7 3'b111
-
 

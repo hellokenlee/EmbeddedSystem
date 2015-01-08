@@ -2,92 +2,53 @@
 //////////////////////////////////////////////////////////////////////////////////
 // Company: SYSU.SS
 // Engineer: KenLee
-//
 // Create Date:    21:07:16 12/14/2014 
 // Design Name:    CPU
 // Target Devices: NEXYS3
-// Dependencies: config.v
+// Dependencies: config.v ALU.v
 //////////////////////////////////////////////////////////////////////////////////
 /**宏定义导入(定义了状态,指令等)**/
 `include "config.v"
 /**
-*ALU模块
-*
-*	- 对于每一个时钟周期,把reg_A 和 reg_B的数据根据ex_ir指令运算,把结果输出到ALUo
-*	- 标志位(flag)的判断留给CPU
-*	- 待写 : 逻辑运算
-*	- 对于每一个regA或者regB或者cf变化,ALUo变化
-*/
-module ALU(input wire[15:0] reg_A,input wire[15:0] reg_B,input wire[15:0] ex_ir,input cf_in,
-				output reg[15:0] ALUo,output reg cf_out);
-	always@(*)
-		begin
-			//如果最高为位1 做加法 
-			if(ex_ir[15]==1)
-				{cf_out,ALUo}<=reg_A+reg_B+cf_in;
-			// 如果为0 逻辑运算,减法或者其他操作
-			else
-			begin
-				//如果011 开头 做减法
-				if(ex_ir[14:13]==2'b11)
-					{cf_out,ALUo}<=reg_A-reg_B-cf_in;
-				//逻辑运算+移位运算
-				else
-					begin
-						cf_out<=0;
-						case(ex_ir[15:11])
-							//逻辑运算
-							`AND:ALUo<=reg_A&reg_B;
-							`OR: ALUo<=reg_A|reg_B;
-							`XOR:ALUo<=reg_A^reg_B;
-							//算术,逻辑左移
-							`SLL:{cf_out,ALUo}<=reg_A<<reg_B;
-							`SRL:{cf_out,ALUo}<=reg_A<<reg_B;
-							`SRA:{cf_out,ALUo}<=reg_A>>>reg_B;
-							`SLA:{cf_out,ALUo}<=reg_A<<<reg_B;
-							default 
-								ALUo<=`zero16;
-						endcase
-					end
-			end
-		end
-endmodule
-
-/**
 *CPU模块
 *
 *	- 里面包含一个ALU
-*	- BUG1:ID和WB阶段对通用寄存器有读写冲突
-*	- BUG2:跳转之后要加3个NOP...
+*	- (solved)BUG1:ID和WB阶段对通用寄存器有读写冲突 
+		-> 对于一般运算和STORE: 在ID阶段 data forwarding(3种)  解决
+		-> 对于LOAD： 在ID阶段stall加df解决
+*	- (solved)BUG2:跳转之后要加3个NOP...
+*		-> check idir,exir,memir and place idir<=NOP(stall 3times);
 */
-module CPU(input clock,input enable,input reset,input start,input wire[3:0] select_y,input wire[15:0] d_datain,input wire[15:0] i_datain,
+module CPU(input clock,input enable,input reset,input start,input wire[2:0] select_y,input wire[15:0] d_datain,input wire[15:0] i_datain,
 				output wire[7:0] d_addr,output wire[15:0] d_dataout,output d_we,output wire[7:0] i_addr,output wire[15:0] y);
 	//状态机状态
 	reg next_state,state;
 	//指令计数器
-	reg[7:0] pc;
+	reg[7:0] pc=`zero8;
 	//8*16b 的通用寄存器
 	reg[15:0] gr[7:0];
 	//各级流水线的指令寄存器
-	reg[15:0] id_ir,ex_ir,mem_ir,wb_ir;
+	reg[15:0] id_ir=`zero16,ex_ir=`zero16,mem_ir=`zero16;
+	reg[7:0] wb_ir=`zero8;
 	//运算相关寄存器
-	reg[15:0] reg_A,reg_B,reg_C,reg_C1;
+	reg[15:0] reg_A=`zero16,reg_B=`zero16,reg_C=`zero16,reg_C1=`zero16;
 	//ALU输出
 	wire[15:0] ALUo;
 	//存储相关寄存器
-	reg[15:0] smdr,smdr1;
+	reg[15:0] smdr=`zero16,smdr1=`zero16;
 	//标志位
-	reg zf,nf,cf;
+	reg zf,nf,cf,pcf;
 	wire cfo;
 	//内存r/w信号
 	reg dw;
 	//ALU实例化
-	ALU alu(reg_A,reg_B,ex_ir,cf,ALUo,cfo);
+	ALU alu(reg_A,reg_B,ex_ir[15:11],cf,ALUo,cfo);
 	//输出
 	assign d_we=dw;
 	assign d_addr=reg_C[7:0];
 	assign d_dataout=smdr1;
 	assign i_addr=pc;
+	assign y=gr[select_y];
 	/**控制器Control级流水**/
 	always @(posedge clock)
 		begin
@@ -105,7 +66,7 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 					else
 						next_state <= `idle;
 				`exec :
-					if ((enable == 1'b0) || (wb_ir[15:8] == `HALT))
+					if ((enable == 1'b0) || (wb_ir[7:0] == `HALT))
 						next_state <= `idle;
 					else
 						next_state <= `exec;
@@ -119,29 +80,74 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 					id_ir <= `zero16;
 					pc <= `zero8;
 				end
-				
 			else if (state ==`exec)
 				begin
-					//读入指令[读入到ID环节的指令寄存器]
-					id_ir <= i_datain;
 					//各种跳转
-					if(mem_ir[15:8]==`JUMP)
-						pc <= mem_ir[7:0];
+					if(id_ir[15:8]==`HALT)
+					begin
+						id_ir<={`HALT,`zero8};
+						pc<=pc;
+					end
+					else if(id_ir[15:8]==`JUMP||id_ir[15:14]==2'b11)
+						begin
+							pc<=pc;
+							id_ir<=`zero16;
+						end
+					else if(ex_ir[15:8]==`JUMP||ex_ir[15:14]==2'b11)
+						begin
+							pc<=pc;
+							id_ir<=`zero16;
+						end
+					else if(mem_ir[15:8]==`JUMP)
+						begin
+							pc <= mem_ir[7:0];
+							id_ir <= `zero16;
+						end
 					else
 						case(mem_ir[15:11])
 							`BZ:if(zf)
+								begin
 									pc<=reg_C[7:0];
+									id_ir<=`zero16;
+								end
 							`BNZ:if(!zf)
+								begin
 									pc<=reg_C[7:0];
+									id_ir<=`zero16;
+								end
 							`BN:if(nf)
+								begin
 									pc<=reg_C[7:0];
+									id_ir<=`zero16;
+								end
 							`BNN:if(!nf)
+								begin
 									pc<=reg_C[7:0];
+									id_ir<=`zero16;
+								end
 							`BC:if(cf)
+								begin
 									pc<=reg_C[7:0];
+									id_ir<=`zero16;
+								end
 							`BNC:if(cf)
+								begin
 									pc<=reg_C[7:0];
-							default pc <= pc + 1;
+									id_ir<=`zero16;
+								end
+							default 
+							begin
+								if(id_ir[15:11]==`LOAD)
+								begin
+									pc<=pc;
+									id_ir<=`zero16;
+								end
+								else
+								begin
+									pc<=pc+1'b1;
+									id_ir<=i_datain;
+								end;
+							end
 						endcase
 				end
 		end
@@ -158,15 +164,53 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 					ex_ir <= id_ir;
 					//赋值Reg_A:
 					if (id_ir[15:14]==2'b11 ||id_ir[15:11]==`LDIH ||id_ir[15:11]==`SUBI||id_ir[15:11]==`ADDI)
-						//	- 当op为 ADDI ,JMPR ,B* ,LDIH,SUBI的时候,reg_A为r1
-						reg_A <= gr[(id_ir[10:8])];
-					else	
+						begin
+							//	- 当op为 ADDI ,JMPR ,B* ,LDIH,SUBI的时候,reg_A为r1
+							if(id_ir[10:8]==ex_ir[10:8])
+							// - 解决冲突: 如果上一级的r1在这一级需要用到，直接从ALUo取值
+								reg_A<=ALUo;
+							else if(id_ir[10:8] == mem_ir[10:8])
+							// - 解决冲突: 如果上两级的r1在这一级需要用到，从regC取值
+								reg_A<=reg_C;
+							else if(id_ir[10:8] == wb_ir[2:0])
+							// - 解决冲突: 如果上三级的r1在这一级需要用到，从regC1取值
+								if(mem_ir[15:11]==`LOAD)
+									reg_A<=d_datain;
+								else
+									reg_A<= reg_C;
+							else
+							// - 没有冲突：在GR取数
+								reg_A <= gr[id_ir[10:8]];
+						end
+					else if(id_ir[15:11]==`zero5)
+						// - 当为JUMP的时候,regA为0
+						reg_A<=`zero8;
+					else
 						//	- 其他情况regA为r2
-						reg_A <= gr[id_ir[6:4]];	
+						begin
+							if(id_ir[6:4]==ex_ir[10:8])
+							// - 解决冲突: 如果上一级的r2在这一级需要用到，直接从ALUo取值
+								reg_A<=ALUo;
+							else if(id_ir[6:4] == mem_ir[10:8])
+							// - 解决冲突: 如果上两级的r2在这一级需要用到，从regC取值
+								if(mem_ir[15:11]==`LOAD)
+									reg_A<=d_datain;
+								else
+									reg_A<= reg_C;
+							else if(id_ir[6:4] == wb_ir[2:0])
+							// - 解决冲突: 如果上三级的r2在这一级需要用到，从regC1取值
+								reg_A<=reg_C1;
+							else
+							// - 没有冲突：在GR取数
+								reg_A <= gr[id_ir[6:4]];
+						end
+						
 					//赋值Reg_B:
-					if (id_ir[15:14] == 2'b11||id_ir[15:11]==`LDIH ||id_ir[15:11]==`SUBI||id_ir[15:11]==`ADDI)
-						// - 当op为 ADDI ,JMPR ,B* ,LDIH,SUBI的时候,reg_B为{val2,val3}
+					if (id_ir[15:14] == 2'b11||id_ir[15:11]==`SUBI||id_ir[15:11]==`ADDI)
+						// - 当op为 ADDI ,JUMP,JMPR ,B* ,LDIH,SUBI的时候,reg_B为{val2,val3}
 						reg_B <= {`zero8, id_ir[7:0]};
+					else if(id_ir[15:11]==`LDIH )
+						reg_B <= { id_ir[7:0],`zero8};
 					else if (id_ir[15:13]==3'b010 || id_ir[15:11]==`LOAD)
 						// - 当op为 S**,STORE,LOAD 时,reg_B为val3
 						reg_B <= {`zero12, id_ir[3:0]};
@@ -174,11 +218,42 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 						// - 特别的 为STORE 处理smdr
 						begin
 							reg_B <= {`zero12, id_ir[3:0]};
-							smdr <= gr[id_ir[10:8]];
+							//smdr <= gr[id_ir[10:8]]; //解决smdr读通用寄存器冲突
+							if(id_ir[10:8]==ex_ir[10:8])
+							// - 解决冲突: 如果上一级的r1在这一级需要用到，直接从ALUo取值
+								smdr <= ALUo;
+							else if(id_ir[10:8] == mem_ir[10:8])
+							// - 解决冲突: 如果上两级的r1在这一级需要用到，从regC取值
+								if(mem_ir[15:11]==`LOAD)
+									smdr<=d_datain;
+								else
+									smdr <= reg_C;
+							else if(id_ir[10:8] == wb_ir[2:0])
+							// - 解决冲突: 如果上三级的r1在这一级需要用到，从regC1取值
+								smdr <= reg_C1;
+							else
+							// - 没有冲突：在GR置数
+								smdr <= gr[id_ir[10:8]];
 						end
 					else
 						// - 其他的时候,reg_B为r3
-						reg_B <= gr[id_ir[2:0]];
+						begin
+							if(id_ir[2:0]==ex_ir[10:8])
+							// - 解决冲突: 如果上一级的r1在这一级需要用到，直接从ALUo取值
+								reg_B<=ALUo;
+							else if(id_ir[2:0] == mem_ir[10:8])
+							// - 解决冲突: 如果上两级的r1在这一级需要用到，从regC取值
+								if(mem_ir[15:11]==`LOAD)
+									reg_B<=d_datain;
+								else
+									reg_B<= reg_C;
+							else if(id_ir[2:0] == wb_ir[2:0])
+							// - 解决冲突: 如果上三级的r1在这一级需要用到，从regC1取值
+								reg_B<=reg_C1;
+							else
+							// - 没有冲突：在GR置数
+								reg_B <= gr[id_ir[2:0]];
+						end
 				end
 		end
 	/**执行EX级流水*/
@@ -196,8 +271,8 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 					//接收ALU的运算结果 存到reg_C
 					reg_C <= ALUo;
 					//处理标志位 对于除了B*,JMPR,LOAD,STORE以外的处理标志位
-					if(ex_ir[15:14]==2'b11 || ex_ir[15:11]==5'b00000 ||ex_ir[15:11] == `LOAD||ex_ir[15:11] == `STORE)
-						;
+					if(ex_ir[15:14]==2'b11 || ex_ir[15:11]==`zero5 ||ex_ir[15:11] == `LOAD||ex_ir[15:11] == `STORE)
+						cf<=cf;
 					else
 						begin
 							//进位标志位
@@ -227,12 +302,12 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 	always @(posedge clock or negedge reset)
 		begin
 			if (!reset)
-				begin
-					wb_ir <=`zero16;
+				begin 
+					wb_ir <=`zero8;
 				end
 			else if (state == `exec)
 				begin
-					wb_ir <= mem_ir;
+					wb_ir <= mem_ir[15:8];
 					//如果为load指令,读入d_datain数据,
 					if (mem_ir[15:11] == `LOAD)
 						reg_C1 <= d_datain;
@@ -247,24 +322,17 @@ module CPU(input clock,input enable,input reset,input start,input wire[3:0] sele
 			if (!reset)
 				begin
 					//通用寄存器初始化
-					gr[0]<=`zero16;
-					gr[1]<=`zero16;
-					gr[2]<=`zero16;
-					gr[3]<=`zero16;
-					gr[4]<=`zero16;
-					gr[5]<=`zero16;
-					gr[6]<=`zero16;
-					gr[7]<=`zero16;
+					gr[0]<=`zero16;gr[1]<=`zero16;gr[2]<=`zero16;gr[3]<=`zero16;
+					gr[4]<=`zero16;gr[5]<=`zero16;gr[6]<=`zero16;gr[7]<=`zero16;
 				end
 			else if (state == `exec)
 			begin
 				//对于需要返回赋值的指令,把上一级的结果写回指令指定的寄存器
 				// 除了JMPR,B*,STORE,CMP,和单指令之外
-				if (wb_ir[15:14]==2'b11||wb_ir[15:11]==`STORE||wb_ir[15:11]==`CMP||wb_ir[15:11]==5'b00000)
-					//gr[wb_ir[10:8]]<=1
+				if (wb_ir[7:6]==2'b11||wb_ir[7:3]==`STORE||wb_ir[7:3]==`CMP||wb_ir[7:3]==`zero5)
 					;
 				else
-					gr[wb_ir[10:8]] <= reg_C1;
+					gr[wb_ir[2:0]] <= reg_C1;
 			end
 		end
 endmodule
