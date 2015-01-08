@@ -1,12 +1,14 @@
 NET "clock" LOC="V10";
 
-NET "enable" LOC="T10";
-NET "start" LOC="T9";
 NET "reset" LOC="V9";
+NET "start" LOC="T9";
+NET "stop" LOC="T10";
+NET "inc" LOC="B8";
 
-NET "select_y[2]" LOC="T5";
-NET "select_y[1]" LOC="V8";
-NET "select_y[0]" LOC="U8";
+NET "select_y[3]" LOC="T5";
+NET "select_y[2]" LOC="V8";
+NET "select_y[1]" LOC="U8";
+NET "select_y[0]" LOC="N8";
 
 NET "seg[6]" LOC="T17";
 NET "seg[5]" LOC="T18";

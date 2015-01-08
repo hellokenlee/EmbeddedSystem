@@ -13,7 +13,7 @@
 *	- 包括一个CPU(内含一个ALU)
 */
 `include "config.v"
-module ALL(input wire clock,input wire enable,input wire reset,input wire start,input wire[2:0] select_y,input wire i_we,input wire[15:0] i_dataout,input wire[7:0] IM_addr,
+module ALL(input wire clock,input wire enable,input wire reset,input wire start,input wire[3:0] select_y,input wire i_we,input wire[15:0] i_dataout,input wire[7:0] IM_addr,
 				output wire[15:0] y);
 	wire[15:0] d_datain,d_dataout,i_datain;
 	wire[7:0] d_addr,pc;

@@ -19,8 +19,8 @@
 *	- (solved)BUG2:跳转之后要加3个NOP...
 *		-> check idir,exir,memir and place idir<=NOP(stall 3times);
 */
-module CPU(input clock,input enable,input reset,input start,input wire[2:0] select_y,input wire[15:0] d_datain,input wire[15:0] i_datain,
-				output wire[7:0] d_addr,output wire[15:0] d_dataout,output d_we,output wire[7:0] i_addr,output wire[15:0] y);
+module CPU(input clock,input enable,input reset,input start,input wire[3:0] select_y,input wire[15:0] d_datain,input wire[15:0] i_datain,
+				output wire[7:0] d_addr,output wire[15:0] d_dataout,output d_we,output wire[7:0] i_addr,output reg[15:0] y);
 	//状态机状态
 	reg next_state,state;
 	//指令计数器
@@ -48,7 +48,26 @@ module CPU(input clock,input enable,input reset,input start,input wire[2:0] sele
 	assign d_addr=reg_C[7:0];
 	assign d_dataout=smdr1;
 	assign i_addr=pc;
-	assign y=gr[select_y];
+	//调试输出
+	always@(*)
+		if(select_y[3]==1'b0)
+			y<=gr[select_y[2:0]];
+		else if(select_y==4'b1000)
+			y<={`zero8,pc};
+		else if(select_y==4'b1001)
+			y<=id_ir;
+		else if(select_y==4'b1010)
+			y<=reg_A;
+		else if(select_y==4'b1011)
+			y<=reg_B;
+		else if(select_y==4'b1100)
+			y<=reg_C;
+		else if(select_y==4'b1101)
+			y<=d_addr;
+		else if(select_y==4'b1110)
+			y<=d_dataout;
+		else
+			y<=reg_C1;
 	/**控制器Control级流水**/
 	always @(posedge clock)
 		begin

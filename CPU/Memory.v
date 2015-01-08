@@ -19,19 +19,33 @@ module Memory(input wire clock,input wire[7:0] address,input wire we,input wire[
 				output wire[15:0] data_out);
 	reg[15:0] RAM[255:0];
 	initial begin
-		RAM[0]<={`SUB, `gr4, 1'b0, `gr4, 1'b0, `gr4};//0
-		RAM[1]<= {`SUB, `gr5, 1'b0, `gr5, 1'b0, `gr5};//1
-		RAM[2]<= {`ADDI, `gr4, 8'b1111_1111};//2
-		RAM[3]<= {`LDIH, `gr5, 8'b1111_1111};//3
-		RAM[4]<= {`STORE, `gr4, 1'b0, `gr0, 4'b0000};//4
-		RAM[5]<= {`STORE, `gr5, 1'b0, `gr0, 4'b0001};//5
-		RAM[6]<= {`LOAD, `gr1, 1'b0, `gr0, 4'b0000};//6
-		RAM[7]<= {`LOAD, `gr2, 1'b0, `gr0, 4'b0001};//7
-		RAM[8]<= {`ADD, `gr3, 1'b0, `gr1, 1'b0, `gr2};//8
-		RAM[9]<= {`JUMP, 8'b0000_1011};//9
-		RAM[10]<= {`ADDI, `gr3, 8'b0000_0001};//10
-		RAM[11]<= {`STORE, `gr3, 1'b0, `gr0, 4'b0010};//11
-		RAM[12]<= {`HALT, `zero8};//12
+		RAM[0] <= {`SUB, `gr1, 1'b0, `gr1, 1'b0, `gr1};
+		RAM[1] <= {`SUB, `gr2, 1'b0, `gr2, 1'b0, `gr2};
+		RAM[2] <= {`ADDI, `gr1, 8'b1111_1111};
+		RAM[3] <= {`LDIH, `gr2, 8'b1111_1111};
+		RAM[4] <= {`STORE, `gr1, 1'b0, `gr0, 4'b0000};
+		RAM[5] <= {`STORE, `gr2, 1'b0, `gr0, 4'b0001};
+		RAM[6] <= {`LOAD, `gr3, 1'b0, `gr0, 4'b0000};
+		RAM[7] <= {`LOAD, `gr4, 1'b0, `gr0, 4'b0001};
+		RAM[8] <= {`ADD, `gr5, 1'b0, `gr3, 1'b0, `gr4};
+		RAM[9] <= {`STORE, `gr5, 1'b0, `gr0, 4'b0010};
+
+		RAM[10] <= {`SUB, `gr6, 1'b0, `gr6, 1'b0, `gr6};
+		RAM[11] <= {`ADDI, `gr6, 8'b0000_0011};
+		RAM[12] <= {`ADDI, `gr5, 8'b0000_0001};
+		RAM[13] <= {`SUBI, `gr6, 8'b0000_0001};
+		RAM[14] <= {`CMP, 3'b000, 1'b0, `gr6, 1'b0, `gr0};
+		RAM[15] <= {`BNZ, `gr0, 8'b0000_1100};
+
+		RAM[16] <= {`AND, `gr7, 1'b0, `gr1, 1'b0, `gr2};
+		RAM[17] <= {`OR, `gr7, 1'b0, `gr1, 1'b0, `gr2};
+		RAM[18] <= {`XOR, `gr7, 1'b0, `gr1, 1'b0, `gr2};
+		RAM[19] <= {`SLL, `gr7, 1'b0, `gr2, 4'b0100};
+		RAM[20] <= {`SLA, `gr7, 1'b0, `gr2, 4'b0100};
+		RAM[21] <= {`SRL, `gr7, 1'b0, `gr2, 4'b0100};
+		RAM[22] <= {`SRA, `gr7, 1'b0, `gr2, 4'b0100};
+
+		RAM[23] <= {`HALT, 8'd0};
 	end
 	assign data_out=RAM[address];
 	always@(posedge clock)
